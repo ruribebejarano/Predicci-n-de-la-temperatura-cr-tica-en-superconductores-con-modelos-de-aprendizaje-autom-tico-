@@ -1,0 +1,1 @@
+# Predicci-n-de-la-temperatura-cr-tica-en-superconductores-con-modelos-de-aprendizaje-autom-tico-
