@@ -1,43 +1,45 @@
-# ⚡ Superconductor Tc Predictor: Machine Learning para Ciencia de Materiales
+# Superconductor Tc Regression: Advanced Materials Discovery via Ensembles
 
-![Status](https://img.shields.io/badge/Status-Completed-success)
-![Python](https://img.shields.io/badge/Python-3.0+-blue)
-![Framework](https://img.shields.io/badge/Framework-Scikit--Learn%20%7C%20XGBoost-orange)
+## Project Overview
+Este proyecto aborda el problema de regresión para la predicción de la Temperatura Crítica (Tc) en materiales superconductores. El objetivo es modelar la relación no lineal entre las propiedades físicas elementales derivadas de la fórmula química y su comportamiento termodinámico, optimizando la precisión predictiva en un dataset con alta variabilidad y presencia de valores extremos.
 
-## Descripción del Proyecto
-[cite_start]Este proyecto desarrolla un sistema predictivo de la **Temperatura Crítica ($T_c$)** de materiales superconductores basándose únicamente en su fórmula química. [cite_start]La capacidad de predecir $T_c$ es vital para acelerar el descubrimiento de materiales que operen a altas temperaturas, con aplicaciones revolucionarias en medicina (MRI), energía y física de partículas[cite: 295, 301].
+## Dataset and Feature Engineering
+Se utilizó el dataset de la NIMS (Japón) con 21,263 muestras. La ingeniería de características se centró en la extracción de 81 descriptores basados en la composición química, incluyendo momentos estadísticos de propiedades atómicas (masa, radio, energía de ionización, etc.).
 
-## El Desafío de Ingeniería
-[cite_start]Predecir $T_c$ es complejo debido a la alta asimetría de los datos (de 0.0002K a 185K) y la presencia de outliers extremos[cite: 322]. 
+### Data Pipeline & Pre-processing
+* **Outlier Management:** Implementación de Winsorización para mitigar el impacto de colas pesadas en la distribución de Tc sin pérdida sustancial de varianza.
+* **Dimensionality Reduction:** Aplicación de Variance Threshold para eliminar features constantes y análisis de colinealidad (Pearson > 0.7) para reducir la redundancia, mejorando la convergencia del modelo.
+* **Scaling:** Estandarización robusta para algoritmos basados en distancias (SVR) y regularización lineal.
 
-### Pipeline de Datos:
-* **Dataset:** 21,263 muestras de la base de datos NIMS (Japón).
-* [cite_start]**Feature Engineering:** Extracción de 81 características basadas en propiedades atómicas (masa, ionización, conductividad térmica, etc.)[cite: 297, 320].
-* [cite_start]**Preprocesamiento:** Implementación de **Winsorización** para manejo robusto de outliers y reducción de dimensionalidad mediante umbrales de varianza y correlación ($>0.7$)[cite: 325, 331, 337].
+## Model Architecture and Training Strategy
+Se evaluó un espectro de modelos con diferentes capacidades de hipótesis para encontrar el equilibrio óptimo entre sesgo y varianza:
 
-## Modelos y Resultados
-[cite_start]Se evaluaron 5 arquitecturas diferentes, optimizadas mediante `RandomizedSearchCV`[cite: 298, 335, 346, 351]:
+1.  **Baseline:** Ridge Regression con expansión polinomial para capturar interacciones de segundo orden.
+2.  **Kernel Methods:** Support Vector Regression (SVR) con kernel RBF para mapeo a espacios de alta dimensionalidad.
+3.  **Boosting:** XGBoost optimizado mediante RandomizedSearchCV para manejo eficiente de estructuras de datos tabulares.
+4.  **Bagging:** Random Forest Regressor para reducción de varianza mediante promediado de árboles profundos.
 
-| Modelo | $R^2$ (Test) | RMSE (Test) |
+### Meta-Learning (Stacking)
+Para maximizar el rendimiento, se implementó un **Stacking Regressor**. Se utilizaron XGBoost, SVR y Random Forest como base learners, y una regresión lineal como meta-modelo. Esta arquitectura permite corregir los errores sistemáticos de los modelos individuales, logrando una mejor generalización en el set de prueba.
+
+## Performance Metrics
+El modelo final (Stacking) presenta un rendimiento superior, especialmente en la capacidad de capturar picos de Tc en materiales de alta temperatura.
+
+| Modelo | R^2 Score | RMSE |
 | :--- | :---: | :---: |
-| **Stacking Regressor** (Ensamble Final) | **0.93** | **9.21 K** |
-| Random Forest Regressor | 0.93 | 9.30 K |
-| XGBoost Regressor | 0.93 | 9.31 K |
-| Polynomial Ridge Regression | 0.87 | 14.21 K |
-| Support Vector Regression (SVR) | 0.84 | 13.79 K |
-[cite_start][cite: 369]
+| Stacking Ensemble | 0.93 | 9.21 K |
+| Random Forest | 0.93 | 9.30 K |
+| XGBoost | 0.93 | 9.31 K |
+| Polynomial Ridge | 0.87 | 14.21 K |
+| SVR | 0.84 | 13.79 K |
 
-> [cite_start]**Insight Clave:** El modelo **Stacking** (combinando XGBoost, SVR y Random Forest) logró la mejor generalización al capturar diversos tipos de sesgos y varianzas de los modelos base[cite: 357, 391].
+## Tech Stack
+* Python 3 (Scikit-Learn, Pandas, NumPy)
+* XGBoost Framework
+* Google Colab para cómputo distribuido
+* Matplotlib/Seaborn para análisis exploratorio y de residuos
 
-## Tecnologías Utilizadas
-* **Lenguaje:** Python 3.0 [cite: 300]
-* [cite_start]**Entorno:** Google Colab [cite: 300]
-* [cite_start]**Librerías:** Pandas, Scikit-Learn (VarianceThreshold, StandardScaler, RidgeCV), XGBoost[cite: 300, 331, 346, 357].
-
-## Cómo usar este repositorio
-1. Clona el repo.
-2. Instala dependencias: `pip install -r requirements.txt`.
-3. Ejecuta el notebook `Superconductor_ML.ipynb`.
-
-## Conclusiones
-[cite_start]Los modelos de ensamble demostraron ser herramientas prometedoras para acelerar la identificación de nuevos materiales de alto $T_c$ en fase de diseño, ofreciendo una precisión significativamente mayor que las reglas empíricas tradicionales[cite: 390, 395].
+## Future Work
+* Implementación de Nested Cross-Validation para una estimación del error de generalización más insesgada.
+* Exploración de arquitecturas de Deep Learning (MLP) con capas de Dropout para regularización adicional.
+* Uso de SHAP (SHapley Additive exPlanations) para interpretabilidad del modelo a nivel de feature contribution.
